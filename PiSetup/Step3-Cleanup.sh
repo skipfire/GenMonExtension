@@ -1,5 +1,3 @@
 sudo userdel -r pitemp
-sudo rm /boot/Step0-InitPi.sh
-sudo rm /boot/Step1-RenamePiUser.sh
-sudo rm /boot/Step2-Cleanup.sh
+sudo rm -r /boot/PiSetup
 echo "Cleanup complete. Change password to 1piadmin!."

@@ -1,3 +1,6 @@
+echo "Enable SSH"
+sudo cp /boot/PiSetup/ssh /boot/
+
 echo "Setup timezone"
 sudo timedatectl set-timezone America/New_York
 
