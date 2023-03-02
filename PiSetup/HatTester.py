@@ -1,25 +1,44 @@
+#sudo pip install pyserial w1thermsensor
 import RPi.GPIO as GPIO
 import os
 import serial
 import sys
 import time
-blueIo = 18
-redIo = 10
-greenIo = 11
-buttonIo = 4
+from w1thermsensor import W1ThermSensor
+
+sensorFound = False
+blueIo = 7
+blueNanoPiIo = 11
+redIo = 24
+greenIo = 23
+buttonIo = 10
+fanIo = 9
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
+
 GPIO.setup(buttonIo, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(redIo,GPIO.OUT)
 GPIO.setup(greenIo,GPIO.OUT)
 GPIO.setup(blueIo,GPIO.OUT)
+GPIO.setup(blueNanoPiIo,GPIO.OUT)
+GPIO.setup(fanIo,GPIO.OUT)
+GPIO.output(fanIo,GPIO.LOW)
+
 GPIO.output(redIo,GPIO.HIGH)
 buttonTested = False
+
+for sensor in W1ThermSensor.get_available_sensors():
+    sensorFound = True
+if not sensorFound:
+    GPIO.output(blueIo,GPIO.HIGH)
 
 def buttonPressed(channel):
     global buttonTested
     GPIO.output(blueIo,GPIO.HIGH)
+    GPIO.output(blueNanoPiIo,GPIO.HIGH)
     GPIO.output(redIo,GPIO.LOW)
+    GPIO.output(fanIo, GPIO.HIGH)
     print("Button success")
     buttonTested = True
     time.sleep(1.5)
@@ -74,9 +93,6 @@ except KeyboardInterrupt:
     print("KeyboardInterrupt button wait")
 
 try:
-    stream = os.popen('sudo bash /home/genmonpi/genmon/startgenmon.sh stop')
-    output = stream.read()
-
     device='/dev/serial0' if len(sys.argv)<2 else sys.argv[1]
 
     baudrate=9600
@@ -95,9 +111,11 @@ try:
     print("write data: sent test string")
     serialPort.write(TestString.encode())
     time.sleep(.05)
-    print("waiting to receive data....")
+    print("waiting to received data....")
     ReceivedString = serialPort.readline()
 
+    GPIO.output(blueIo,GPIO.LOW)
+    GPIO.output(blueNanoPiIo,GPIO.LOW)
     if TestString != ReceivedString.decode("UTF-8"):
         print("FAILED: Sent data does not match receive. Received %d bytes" % len(ReceivedString))
         GPIO.output(redIo,GPIO.HIGH)
@@ -113,12 +131,8 @@ try:
         GPIO.output(redIo,GPIO.LOW)
         time.sleep(0.5)
         GPIO.output(redIo,GPIO.HIGH)
-        time.sleep(0.5)
-        GPIO.output(redIo,GPIO.LOW)
-        GPIO.cleanup() # clean up GPIO on normal exit
     else:
         print("PASSED! Loopback successful")
-        GPIO.output(blueIo,GPIO.LOW)
         GPIO.output(greenIo,GPIO.HIGH)
         time.sleep(1.5)
     serialPort.close()
@@ -127,18 +141,21 @@ except Exception as e1:
     print( "error communicating...: " + str(e1) + " " + GetErrorInfo())
 except KeyboardInterrupt:
     print("KeyboardInterrupt serial test")
-
-
+    
 GPIO.output(redIo,GPIO.HIGH)
 GPIO.output(greenIo,GPIO.HIGH)
 GPIO.output(blueIo,GPIO.HIGH)
+GPIO.output(blueNanoPiIo,GPIO.HIGH)
 time.sleep(1.5)
-GPIO.output(redIo,GPIO.LOW)
 GPIO.output(greenIo,GPIO.LOW)
 GPIO.output(blueIo,GPIO.LOW)
-GPIO.cleanup() # clean up GPIO on normal exit
-
-stream = os.popen('sudo bash /home/genmonpi/genmon/startgenmon.sh start')
-output = stream.read()
+GPIO.output(blueNanoPiIo,GPIO.LOW)
+GPIO.output(fanIo,GPIO.LOW)
+if sensorFound:
+    GPIO.output(redIo,GPIO.LOW)
+    GPIO.cleanup() # clean up GPIO on normal exit
+else:
+    GPIO.output(redIo,GPIO.HIGH)
+    print("Sensor not found")
 
 print("Done")
