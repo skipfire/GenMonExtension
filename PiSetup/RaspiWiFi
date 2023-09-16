@@ -1,0 +1,15 @@
+## RaspiWiFi
+```
+git clone https://github.com/skipfire/RaspiWiFi
+cd RaspiWiFi
+sudo python3 initial_setup.py
+```
+SSID Name - GenMonConfig \
+WPA - n \
+Password (blank) \
+Enable auto reconfig - n \
+Auto reconfig (blank) \
+Port (blank) \
+SSL - n \
+Save config - y \
+Reboot - y
