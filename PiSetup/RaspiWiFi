@@ -8,7 +8,7 @@ SSID Name - GenMonConfig \
 WPA - n \
 Password (blank) \
 Enable auto reconfig - n \
-Auto reconfig (blank) \
+Auto reconfig delay (blank) \
 Port (blank) \
 SSL - n \
 Save config - y \
